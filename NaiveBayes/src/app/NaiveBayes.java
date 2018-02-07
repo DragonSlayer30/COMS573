@@ -1,20 +1,13 @@
-/**
- * 
- */
 package app;
 
-/**
- * @author umesh
- *
- */
-public class MainApp {
+public class NaiveBayes {
 
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-
+		for(int i = 0; i < 6; i++) {
+			System.out.println(args[i]);
+		}
+		
 	}
 
 }
