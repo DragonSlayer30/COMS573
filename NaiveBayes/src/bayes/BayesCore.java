@@ -6,6 +6,7 @@ import java.util.HashSet;
 
 import util.Document;
 import util.FileUtil;
+import util.WordDetails;
 
 public class BayesCore {
 	
@@ -83,7 +84,7 @@ public class BayesCore {
 			int id = Integer.parseInt(trainLine[1]);
 			int docNum = Integer.parseInt(trainLine[0]) - 1;
 			int count = Integer.parseInt(trainLine[2]);
-			newsDocument.getWords()[id].setClassTypeCount(document_to_Class[docNum], count);
+			newsDocument.getWords()[id - 1].setClassTypeCount(document_to_Class[docNum], count);
 			if(document_word_list.get(trainLine[0]) == null) {
 				document_word_list.put(trainLine[0], new HashSet<String>());
 				document_word_list.get(trainLine[0]).add(trainLine[1]);
@@ -98,19 +99,49 @@ public class BayesCore {
 		}
 		train_data.clear();
 		
+		length = newsDocument.getWords().length;
+		// Calculate Priors
+		for(int i = 0; i < length; i++) {
+			newsDocument.getWords()[i].calculatePriors(); 
+			double sumCheck = 0.0;
+			for(int j = 0; j < 20; j++) {
+				sumCheck = sumCheck + newsDocument.getWords()[i].getPrior_Class(j + 1);
+				if(debug) System.out.println(document_id_map[j] + " " + newsDocument.getWords()[i].getWordName() + " Prior : " + newsDocument.getWords()[i].getPrior_Class(j + 1));
+			}
+			if(debug) System.out.println("Total Prior Sum : " + sumCheck);
+		}
+		
 		// testing train data 
 		int i = 0;
 		for (String string : document_word_list.keySet()) {
 			i = i + document_word_list.get(string).size();
-			if(debug) System.out.println("Total words in document " + string + " " + document_word_list.get(string).size());
+			//if(debug) System.out.println("Total words in document " + string + " " + document_word_list.get(string).size());
 		}
-		if(debug) System.out.println("Total words in all documents with repetetions : " + i);
+		//if(debug) System.out.println("Total words in all documents with repetetions : " + i);
 		i = 0;
 		for (String string : class_word_list.keySet()) {
 			i = i + class_word_list.get(string).size();
-			if(debug) System.out.println("Total words in class " + string + " " + class_word_list.get(string).size());
+			//if(debug) System.out.println("Total words in class " + string + " " + class_word_list.get(string).size());
 		}
-		if(debug) System.out.println("Total words in all classes with repetetions : " + i);
+		//if(debug) System.out.println("Total words in all classes with repetetions : " + i);
+		/* 
+		double sumCheck = 0.0;
+		i = 61187;
+		for(int j = 0; j < 20; j++) {
+			sumCheck = sumCheck + newsDocument.getWords()[i].getPrior_Class(j + 1);
+			if(!debug) System.out.println(document_id_map[j] + " " + newsDocument.getWords()[i].getWordName() + "Total word Count "+ newsDocument.getWords()[i].getTotalCount() + " Calculation " + (double)newsDocument.getWords()[i].getClassTypeCount(j + 1)/newsDocument.getWords()[i].getTotalCount() + " Prior : " + newsDocument.getWords()[i].getPrior_Class(j + 1));
+		}
+		if(!debug) System.out.println("Total Prior Sum : " + sumCheck);
+		*/
+		/*
+		WordDetails wordDetails = newsDocument.getWords()[0];
+		if(debug) System.out.println("Word Id : " + wordDetails.getWordId() + " Name " + wordDetails.getWordName() + " Total Count : " + wordDetails.getTotalCount());
+		for(i = 0; i < 20; i++) {
+			if(debug) System.out.println("Word Count in Class type " + (i + 1) + " " + wordDetails.getClassTypeCount(i + 1) + " Priority : " + (wordDetails.getClassTypeCount(i + 1)/wordDetails.getTotalCount())); 
+		}
+		if(!debug) System.out.println("prior : " + ((double)wordDetails.getClassTypeCount(1)/wordDetails.getTotalCount())); 
+		*/
+		
 	}
 	
 }
