@@ -8,6 +8,11 @@ public class WordDetails {
 	
 	String wordName;
 
+	public WordDetails(int id, String name) {
+		setWordId(id);
+		setWordName(name);
+	}
+	
 	public int getWordId() {
 		return wordId;
 	}
@@ -20,8 +25,10 @@ public class WordDetails {
 		return classTypeCount[documentId - 1];
 	}
 
-	public void setClassTypeCount(int[] classTypeCount) {
-		this.classTypeCount = classTypeCount;
+	public void setClassTypeCount(int classId, int classTypeCount) {
+		this.classTypeCount[classId - 1] = classTypeCount;
+		incrementClassCount(classId, classTypeCount);
+		totalCount = totalCount + classTypeCount;
 	}
 
 	public int getTotalCount() {
