@@ -27,6 +27,8 @@ public class BayesCore {
 	HashMap<String, HashSet<String>> document_word_list = new HashMap<String, HashSet<String>>(); 
 	HashMap<String, HashSet<String>> class_word_list = new HashMap<String, HashSet<String>>();
  	int[] document_to_Class;
+ 	double[] document_prior;
+ 	int[] type_document_count;
 	
 	public BayesCore(String vocabulary, String map, String label, String data, String test_label, String test_data, boolean print) {
 		map_file = map;
@@ -70,9 +72,19 @@ public class BayesCore {
 		ArrayList<String> train_label = fileUtil.readFile(training_label_file);
 		length = train_label.size();
 		document_to_Class = new int[length];
+		type_document_count = new int[20];
 		for(int i = 0; i < length; i++) {
 			document_to_Class[i] = Integer.parseInt(train_label.get(i));
+			type_document_count[document_to_Class[i] - 1] = type_document_count[document_to_Class[i] - 1] + 1;
 		}
+		document_prior = new double[20];
+		double prior_Sum_check = 0.0;
+		for(int i = 0; i < 20; i++) {
+			document_prior[i] = (double)type_document_count[i]/length;
+			prior_Sum_check = prior_Sum_check + document_prior[i];
+			//if(debug)  System.out.println("Prior for document type " + (i + 1) + " " + document_prior[i]);
+		}
+		//if(debug) System.out.println("Prior Sum Check : " + prior_Sum_check);
 		train_label.clear();
 		
 		// Feeding train data
@@ -104,11 +116,14 @@ public class BayesCore {
 		for(int i = 0; i < length; i++) {
 			newsDocument.getWords()[i].calculatePriors(); 
 			double sumCheck = 0.0;
-			for(int j = 0; j < 20; j++) {
-				sumCheck = sumCheck + newsDocument.getWords()[i].getPrior_Class(j + 1);
-				if(debug) System.out.println(document_id_map[j] + " " + newsDocument.getWords()[i].getWordName() + " Prior : " + newsDocument.getWords()[i].getPrior_Class(j + 1));
+			if(i == 0) {
+				for(int j = 0; j < 20; j++) {
+					sumCheck = sumCheck + newsDocument.getWords()[i].getPrior_Class(j + 1);
+					if(debug) System.out.println(document_id_map[j] + " " + newsDocument.getWords()[i].getWordName() + " Prior : " + newsDocument.getWords()[i].getPrior_Class(j + 1));
+				}
+				if(debug) System.out.println("Total Prior Sum : " + sumCheck);
 			}
-			if(debug) System.out.println("Total Prior Sum : " + sumCheck);
+			
 		}
 		
 		// testing train data 
