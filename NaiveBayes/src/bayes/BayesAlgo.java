@@ -151,7 +151,8 @@ public class BayesAlgo {
 		*/
 		maximumLikelihoodEstimate();
 		bayesian_estimator();
-		test_test_data();
+		test_data_MLE();
+		test_data_Bayesian_estimate();
 	}
 	
 	public void maximumLikelihoodEstimate() {
@@ -180,7 +181,47 @@ public class BayesAlgo {
 		}
 	}
 	
-	public void test_test_data() {
+	public void test_data_MLE() {
+		int[] test_document_to_class;
+		int length = 0;
+		int correct = 0;
+		int wrong = 0;
+		ArrayList<String> document_class_info = fileUtil.readFile(testing_label_file);
+		length = document_class_info.size();
+		test_document_to_class = new int[length];
+		for(int i = 0; i < length; i++) {
+			test_document_to_class[i] = Integer.parseInt(document_class_info.get(i)) - 1;
+		}
+		ArrayList<Document_skeleton> skeletons = create_List_from_file(testing_data_file);
+		int total_test_files = skeletons.size();
+		for(int i = 0; i < total_test_files; i++) {
+			Document_skeleton doc = skeletons.get(i);
+			double probability = 0;
+			int class_id = -1;
+			for(int j = 0; j < 20; j++) {
+				double class_probability = Math.log(class_prior[j]);
+				ArrayList<WordToCount> wc = doc.getWord_map();
+				for (WordToCount wordToCount : wc) {
+					double word_prob = (wordToCount.getCount())*news_paper[j].get_Maximum_likelihood()[wordToCount.getWord_id() - 1];
+					if(word_prob != 0) class_probability = class_probability + Math.log(word_prob);
+				}
+				if(class_probability < probability) { 
+					class_id = j;
+					probability = class_probability;
+				}
+			}
+			doc.setClass_id(class_id);
+			//if(debug) System.out.println("Class Id calculated : " + class_id + " Actual " + test_document_to_class[i]);
+			if(test_document_to_class[i] == class_id) {
+				correct = correct + 1;
+			}
+			else wrong = wrong + 1;
+		}
+		if(debug) System.out.println("Testing using MLE files count : " + length + " Correct : " + correct + " wrong " + wrong);
+		if(debug) System.out.println("Accuracy : " + (double)correct/length);
+	}
+	
+	public void test_data_Bayesian_estimate() {
 		int[] test_document_to_class;
 		int length = 0;
 		int correct = 0;
@@ -201,7 +242,7 @@ public class BayesAlgo {
 				double class_probability = Math.log(class_prior[j]);
 				ArrayList<WordToCount> wc = doc.getWord_map();
 				for (WordToCount wordToCount : wc) {
-					double word_prob = news_paper[j].get_Maximum_likelihood()[wordToCount.getWord_id() - 1];
+					double word_prob = (wordToCount.getCount())*news_paper[j].getBayesian_estimator()[wordToCount.getWord_id() - 1];
 					if(word_prob != 0) class_probability = class_probability + Math.log(word_prob);
 				}
 				if(class_probability > probability) { 
@@ -210,13 +251,13 @@ public class BayesAlgo {
 				}
 			}
 			doc.setClass_id(class_id);
-			if(debug) System.out.println("Class Id calculated : " + class_id + " Actual " + test_document_to_class[i]);
+			//if(debug) System.out.println("Class Id calculated : " + class_id + " Actual " + test_document_to_class[i]);
 			if(test_document_to_class[i] == class_id) {
 				correct = correct + 1;
 			}
 			else wrong = wrong + 1;
 		}
-		if(debug) System.out.println("Total documents in test file : " + length + " Correct : " + correct + " wrong" + wrong);
+		if(debug) System.out.println("Testing using Bayesian files count : " + length + " Correct : " + correct + " wrong " + wrong);
 		if(debug) System.out.println("Accuracy : " + (double)correct/length);
 	}
 	
