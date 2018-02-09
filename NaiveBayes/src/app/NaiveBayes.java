@@ -1,7 +1,6 @@
 package app;
 
 import bayes.BayesAlgo;
-import bayes.BayesCore;
 
 public class NaiveBayes {
 

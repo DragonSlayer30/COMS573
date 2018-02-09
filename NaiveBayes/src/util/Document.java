@@ -4,40 +4,35 @@ import java.util.ArrayList;
 
 public class Document {
 	
-	WordDetails[] words;
-	int totalCoount = 0;
+	int unique_words = 0;
+	ArrayList<WordToCount> word_map = new ArrayList<WordToCount>();
+	int total_words = 0;
+	int class_id = -1;
 	
-	public Document(ArrayList<String> allWords) {
-		WordDetails[] wordsTemp = new WordDetails[allWords.size()];
-		int index = 0;
-		for (String string : allWords) {
-			wordsTemp[index] = new WordDetails(index + 1, string);
-			index++;
-		}
-		setWords(wordsTemp);
+	public int getUnique_words() {
+		return unique_words;
+	}
+	public void setUnique_words(int unique_words) {
+		this.unique_words = unique_words;
+	}
+	public ArrayList<WordToCount> getWord_map() {
+		return word_map;
+	}
+	public void setWord_map(ArrayList<WordToCount> word_map) {
+		this.word_map = word_map;
+	}
+	public int getTotal_words() {
+		return total_words;
+	}
+	public void setTotal_words(int total_words) {
+		this.total_words = total_words;
+	}
+	public int getClass_id() {
+		return class_id;
+	}
+	public void setClass_id(int class_id) {
+		this.class_id = class_id;
 	}
 	
-	public WordDetails[] getWords() {
-		return words;
-	}
 	
-	public void setWords(WordDetails[] words) {
-		this.words = words;
-	}
-	
-	public int getTotalCoount() {
-		return totalCoount;
-	}
-	
-	public void setTotalCoount(int totalCoount) {
-		this.totalCoount = totalCoount;
-	}
-	
-	public void increaseTotalCount(int increment) {
-		totalCoount = totalCoount + increment;
-	}
-	
-	public void decreaseTotalCount(int decrement) {
-		totalCoount = totalCoount + decrement;
-	}
 }

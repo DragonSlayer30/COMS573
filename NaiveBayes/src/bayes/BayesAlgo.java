@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import util.Document;
-import util.Document_skeleton;
 import util.FileUtil;
 import util.NewsPaperClass;
 import util.WordToCount;
@@ -30,7 +29,7 @@ public class BayesAlgo {
 	int[] document_id__to_class_map;
 	int[] class_to_document_count = new int[20];
 	double[] class_prior = new double[20];
-	ArrayList<Document_skeleton> allDocuments = new ArrayList<Document_skeleton>();
+	ArrayList<Document> allDocuments = new ArrayList<Document>();
 	NewsPaperClass[] news_paper = new NewsPaperClass[20];
 
 	public BayesAlgo(String vocabulary, String map, String label, String data, String test_label, String test_data, boolean print) {
@@ -105,7 +104,7 @@ public class BayesAlgo {
 		// process documents
 		for(int i = 0; i < total_documents; i++) {
 			int total_in_doc = 0;
-			Document_skeleton skeleton = allDocuments.get(i);
+			Document skeleton = allDocuments.get(i);
 			for(WordToCount wc : skeleton.getWord_map()) {
 				total_in_doc = total_in_doc + wc.getCount();
 			}
@@ -132,7 +131,7 @@ public class BayesAlgo {
 			news_paper[i].setTotal_documents(class_to_document_count[i]);
 		}
 		for(int i = 0; i < total_documents; i++) {
-			Document_skeleton skeleton = allDocuments.get(i);
+			Document skeleton = allDocuments.get(i);
 			int class_id = skeleton.getClass_id();
 			NewsPaperClass paperClass = news_paper[class_id - 1];
 			paperClass.setTotal_word(paperClass.getTotal_word() + skeleton.getTotal_words());
@@ -192,10 +191,10 @@ public class BayesAlgo {
 		for(int i = 0; i < length; i++) {
 			test_document_to_class[i] = Integer.parseInt(document_class_info.get(i)) - 1;
 		}
-		ArrayList<Document_skeleton> skeletons = create_List_from_file(testing_data_file);
+		ArrayList<Document> skeletons = create_List_from_file(testing_data_file);
 		int total_test_files = skeletons.size();
 		for(int i = 0; i < total_test_files; i++) {
-			Document_skeleton doc = skeletons.get(i);
+			Document doc = skeletons.get(i);
 			double probability = 0;
 			int class_id = -1;
 			for(int j = 0; j < 20; j++) {
@@ -232,10 +231,10 @@ public class BayesAlgo {
 		for(int i = 0; i < length; i++) {
 			test_document_to_class[i] = Integer.parseInt(document_class_info.get(i)) - 1;
 		}
-		ArrayList<Document_skeleton> skeletons = create_List_from_file(testing_data_file);
+		ArrayList<Document> skeletons = create_List_from_file(testing_data_file);
 		int total_test_files = skeletons.size();
 		for(int i = 0; i < total_test_files; i++) {
-			Document_skeleton doc = skeletons.get(i);
+			Document doc = skeletons.get(i);
 			double probability = Integer.MIN_VALUE;
 			int class_id = -1;
 			for(int j = 0; j < 20; j++) {
@@ -261,8 +260,8 @@ public class BayesAlgo {
 		if(debug) System.out.println("Accuracy : " + (double)correct/length);
 	}
 	
-	public ArrayList<Document_skeleton> create_List_from_file(String fileName) {
-		ArrayList<Document_skeleton> documents = new ArrayList<Document_skeleton>();
+	public ArrayList<Document> create_List_from_file(String fileName) {
+		ArrayList<Document> documents = new ArrayList<Document>();
 		ArrayList<String> train_data = fileUtil.readFile(fileName);
 		int length = train_data.size();
 		for(int i = 0; i < length; i++) {
@@ -272,7 +271,7 @@ public class BayesAlgo {
 			int count = Integer.parseInt(trainLine[2]);
 			WordToCount wordToCount = new WordToCount(id, count);
 			if(docNum > documents.size()) {
-				Document_skeleton document_skeleton = new Document_skeleton();
+				Document document_skeleton = new Document();
 				document_skeleton.setClass_id(document_id__to_class_map[docNum - 1]);
 				document_skeleton.getWord_map().add(wordToCount);
 				documents.add(document_skeleton);
