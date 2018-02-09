@@ -150,8 +150,10 @@ public class BayesAlgo {
 		*/
 		maximumLikelihoodEstimate();
 		bayesian_estimator();
-		test_data_MLE();
-		test_data_Bayesian_estimate();
+		test_data_MLE(testing_data_file, testing_label_file);
+		test_data_Bayesian_estimate(testing_data_file, testing_label_file);
+		test_data_MLE(training_data_file, training_data_file);
+		test_data_Bayesian_estimate(training_data_file, training_label_file);
 	}
 	
 	public void maximumLikelihoodEstimate() {
@@ -180,16 +182,19 @@ public class BayesAlgo {
 		}
 	}
 	
-	public void test_data_MLE() {
+	public void test_data_MLE(String test, String label) {
 		int[] test_document_to_class;
 		int length = 0;
 		int correct = 0;
 		int wrong = 0;
+		int[][] confusion_matrix = new int[20][20];
+		int[] test_class_to_document_count = new int [20];
 		ArrayList<String> document_class_info = fileUtil.readFile(testing_label_file);
 		length = document_class_info.size();
 		test_document_to_class = new int[length];
 		for(int i = 0; i < length; i++) {
 			test_document_to_class[i] = Integer.parseInt(document_class_info.get(i)) - 1;
+			test_class_to_document_count[test_document_to_class[i]] = test_class_to_document_count[test_document_to_class[i]] + 1;
 		}
 		ArrayList<Document> skeletons = create_List_from_file(testing_data_file);
 		int total_test_files = skeletons.size();
@@ -215,23 +220,43 @@ public class BayesAlgo {
 				correct = correct + 1;
 			}
 			else wrong = wrong + 1;
+			confusion_matrix[test_document_to_class[i]][class_id] = confusion_matrix[test_document_to_class[i]][class_id] + 1;
 		}
 		if(debug) System.out.println("Testing using MLE files count : " + length + " Correct : " + correct + " wrong " + wrong);
 		if(debug) System.out.println("Accuracy : " + (double)correct/length);
+		/*
+		for(int i = 0; i < 20; i++) {
+			for(int j = 0; j < 20; j++) {
+				if(debug) System.out.print(confusion_matrix[i][j] + " ");
+			}
+			if(debug) System.out.println("");
+		}
+		*/
+		double[] class_level_accuracy = new double[20];
+		for(int i = 0; i < 20;  i++) {
+			class_level_accuracy[i] = (double)confusion_matrix[i][i]/test_class_to_document_count[i] ;
+		}
+		for(int i = 0; i < 20; i++) {
+			//if(debug) System.out.println("Accuracy for class " + (i + 1) + " " + class_level_accuracy[i]);
+		}
 	}
 	
-	public void test_data_Bayesian_estimate() {
+	public void test_data_Bayesian_estimate(String test, String label) {
 		int[] test_document_to_class;
 		int length = 0;
 		int correct = 0;
 		int wrong = 0;
-		ArrayList<String> document_class_info = fileUtil.readFile(testing_label_file);
+		int[][] confusion_matrix = new int[20][20];
+		int[] test_class_to_document_count = new int [20];
+		test_document_to_class = new int[length];
+		ArrayList<String> document_class_info = fileUtil.readFile(label);
 		length = document_class_info.size();
 		test_document_to_class = new int[length];
 		for(int i = 0; i < length; i++) {
 			test_document_to_class[i] = Integer.parseInt(document_class_info.get(i)) - 1;
+			test_class_to_document_count[test_document_to_class[i]] = test_class_to_document_count[test_document_to_class[i]] + 1;
 		}
-		ArrayList<Document> skeletons = create_List_from_file(testing_data_file);
+		ArrayList<Document> skeletons = create_List_from_file(test);
 		int total_test_files = skeletons.size();
 		for(int i = 0; i < total_test_files; i++) {
 			Document doc = skeletons.get(i);
@@ -255,9 +280,25 @@ public class BayesAlgo {
 				correct = correct + 1;
 			}
 			else wrong = wrong + 1;
+			confusion_matrix[test_document_to_class[i]][class_id] = confusion_matrix[test_document_to_class[i]][class_id] + 1;
 		}
 		if(debug) System.out.println("Testing using Bayesian files count : " + length + " Correct : " + correct + " wrong " + wrong);
 		if(debug) System.out.println("Accuracy : " + (double)correct/length);
+		/*
+		for(int i = 0; i < 20; i++) {
+			for(int j = 0; j < 20; j++) {
+				if(debug) System.out.print(confusion_matrix[i][j] + " ");
+			}
+			if(debug) System.out.println("");
+		}
+		*/
+		double[] class_level_accuracy = new double[20];
+		for(int i = 0; i < 20;  i++) {
+			class_level_accuracy[i] = (double)confusion_matrix[i][i]/test_class_to_document_count[i] ;
+		}
+		for(int i = 0; i < 20; i++) {
+			//if(debug) System.out.println("Accuracy for class " + (i + 1) + " " + class_level_accuracy[i]);
+		}
 	}
 	
 	public ArrayList<Document> create_List_from_file(String fileName) {
