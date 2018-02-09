@@ -26,7 +26,7 @@ public class NewsPaperClass {
 	public void setWord_count(int[] word_count) {
 		this.word_count = word_count;
 	}
-	public double[] getMaximum_likelihood() {
+	public double[] get_Maximum_likelihood() {
 		return maximum_likelihood;
 	}
 	public void setMaximum_likelihood(double[] maximum_likelihood) {

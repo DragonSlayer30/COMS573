@@ -68,6 +68,7 @@ public class BayesAlgo {
 		}
 		//if(debug) System.out.println("Total documents from file : " + length);
 		
+		/*
 		// Feeding train data
 		ArrayList<String> train_data = fileUtil.readFile(training_data_file);
 		length = train_data.size();
@@ -89,6 +90,12 @@ public class BayesAlgo {
 		}
 		//if(debug) System.out.println("Total documents : " + allDocuments.size());
 		int total_documents = allDocuments.size();
+		*/
+		
+		allDocuments = create_List_from_file(training_data_file);
+		if(debug) System.out.println("Total documents : " + allDocuments.size());
+		int total_documents = allDocuments.size();
+		
 		// prior for classes 
 		for(int i = 0; i < 20; i++) {
 			class_prior[i] = (double)class_to_document_count[i]/total_documents;
@@ -144,6 +151,7 @@ public class BayesAlgo {
 		*/
 		maximumLikelihoodEstimate();
 		bayesian_estimator();
+		test_test_data();
 	}
 	
 	public void maximumLikelihoodEstimate() {
@@ -151,7 +159,7 @@ public class BayesAlgo {
 			NewsPaperClass paperClass = news_paper[i];
 			long total_words = paperClass.getTotal_word();
 			int[] wordCount = paperClass.getWord_count();
-			double[] mle = paperClass.getMaximum_likelihood();
+			double[] mle = paperClass.get_Maximum_likelihood();
 			for(int j = 0; j < vocabulary_count; j++) {
 				mle[j] = (double)wordCount[j]/total_words;
 				//if(debug) System.out.println("MLE for " + (j) + " for " + (i + 1) + " " + mle[j]);
@@ -167,8 +175,71 @@ public class BayesAlgo {
 			double[] byestimator = paperClass.getBayesian_estimator();
 			for(int j = 0; j < vocabulary_count; j++) {
 				byestimator[j] = (double)(wordCount[j] + 1)/(total_words + vocabulary_count);
-				if(debug) System.out.println("BYE for " + (j) + " for " + (i + 1) + " " + byestimator[j]);
+				//if(debug) System.out.println("BYE for " + (j) + " for " + (i + 1) + " " + byestimator[j]);
 			}
 		}
+	}
+	
+	public void test_test_data() {
+		int[] test_document_to_class;
+		int length = 0;
+		int correct = 0;
+		int wrong = 0;
+		ArrayList<String> document_class_info = fileUtil.readFile(testing_label_file);
+		length = document_class_info.size();
+		test_document_to_class = new int[length];
+		for(int i = 0; i < length; i++) {
+			test_document_to_class[i] = Integer.parseInt(document_class_info.get(i)) - 1;
+		}
+		ArrayList<Document_skeleton> skeletons = create_List_from_file(testing_data_file);
+		int total_test_files = skeletons.size();
+		for(int i = 0; i < total_test_files; i++) {
+			Document_skeleton doc = skeletons.get(i);
+			double probability = Integer.MIN_VALUE;
+			int class_id = -1;
+			for(int j = 0; j < 20; j++) {
+				double class_probability = Math.log(class_prior[j]);
+				ArrayList<WordToCount> wc = doc.getWord_map();
+				for (WordToCount wordToCount : wc) {
+					double word_prob = news_paper[j].get_Maximum_likelihood()[wordToCount.getWord_id() - 1];
+					if(word_prob != 0) class_probability = class_probability + Math.log(word_prob);
+				}
+				if(class_probability > probability) { 
+					class_id = j;
+					probability = class_probability;
+				}
+			}
+			doc.setClass_id(class_id);
+			if(debug) System.out.println("Class Id calculated : " + class_id + " Actual " + test_document_to_class[i]);
+			if(test_document_to_class[i] == class_id) {
+				correct = correct + 1;
+			}
+			else wrong = wrong + 1;
+		}
+		if(debug) System.out.println("Total documents in test file : " + length + " Correct : " + correct + " wrong" + wrong);
+		if(debug) System.out.println("Accuracy : " + (double)correct/length);
+	}
+	
+	public ArrayList<Document_skeleton> create_List_from_file(String fileName) {
+		ArrayList<Document_skeleton> documents = new ArrayList<Document_skeleton>();
+		ArrayList<String> train_data = fileUtil.readFile(fileName);
+		int length = train_data.size();
+		for(int i = 0; i < length; i++) {
+			String[] trainLine = train_data.get(i).split(",");
+			int id = Integer.parseInt(trainLine[1]);
+			int docNum = Integer.parseInt(trainLine[0]);
+			int count = Integer.parseInt(trainLine[2]);
+			WordToCount wordToCount = new WordToCount(id, count);
+			if(docNum > documents.size()) {
+				Document_skeleton document_skeleton = new Document_skeleton();
+				document_skeleton.setClass_id(document_id__to_class_map[docNum - 1]);
+				document_skeleton.getWord_map().add(wordToCount);
+				documents.add(document_skeleton);
+			}
+			else {
+				documents.get(docNum - 1).getWord_map().add(wordToCount);
+			}
+		}
+		return documents;
 	}
 }
