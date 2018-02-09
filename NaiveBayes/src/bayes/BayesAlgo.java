@@ -92,13 +92,15 @@ public class BayesAlgo {
 		*/
 		
 		allDocuments = create_List_from_file(training_data_file);
-		if(debug) System.out.println("Total documents : " + allDocuments.size());
+		//if(debug) System.out.println("Total documents : " + allDocuments.size());
 		int total_documents = allDocuments.size();
 		
+		
 		// prior for classes 
+		if(debug) System.out.println("1.Class priors");
 		for(int i = 0; i < 20; i++) {
 			class_prior[i] = (double)class_to_document_count[i]/total_documents;
-			//if(debug) System.out.println("Prior for class " + i + " " + (double)class_to_document_count[i]/allDocuments.size()); 
+			if(debug) System.out.println("P(Omega = " + (i + 1) + ") " + (double)class_to_document_count[i]/allDocuments.size()); 
 		}
 		
 		// process documents
@@ -150,10 +152,20 @@ public class BayesAlgo {
 		*/
 		maximumLikelihoodEstimate();
 		bayesian_estimator();
-		test_data_MLE(testing_data_file, testing_label_file);
-		test_data_Bayesian_estimate(testing_data_file, testing_label_file);
-		test_data_MLE(training_data_file, training_data_file);
+		if(debug) System.out.println("2.Results based on Bayesian estimator");
+		if(debug) System.out.println("2.1).Training Data on Bayesian estimator");
 		test_data_Bayesian_estimate(training_data_file, training_label_file);
+		if(debug) System.out.println("");
+		if(debug) System.out.println("2.2).Test Data on Bayesian estimator");
+		if(debug) System.out.println("2.2).Test Data on Bayesian estimator");
+		test_data_Bayesian_estimate(testing_data_file, testing_label_file);
+		//test_data_MLE(training_data_file, training_label_file);
+		if(debug) System.out.println("");
+		if(debug) System.out.println("3 Results based on Maximum Likelihood estimator");
+		if(debug) System.out.println("");
+		if(debug) System.out.println("Test Data of Maximum Likelihood estimator");
+		test_data_MLE(testing_data_file, testing_label_file);
+		//test_data_MLE(training_data_file, training_label_file);
 	}
 	
 	public void maximumLikelihoodEstimate() {
@@ -189,27 +201,29 @@ public class BayesAlgo {
 		int wrong = 0;
 		int[][] confusion_matrix = new int[20][20];
 		int[] test_class_to_document_count = new int [20];
-		ArrayList<String> document_class_info = fileUtil.readFile(testing_label_file);
+		ArrayList<String> document_class_info = fileUtil.readFile(label);
 		length = document_class_info.size();
 		test_document_to_class = new int[length];
 		for(int i = 0; i < length; i++) {
 			test_document_to_class[i] = Integer.parseInt(document_class_info.get(i)) - 1;
 			test_class_to_document_count[test_document_to_class[i]] = test_class_to_document_count[test_document_to_class[i]] + 1;
 		}
-		ArrayList<Document> skeletons = create_List_from_file(testing_data_file);
+		ArrayList<Document> skeletons = create_List_from_file(test);
 		int total_test_files = skeletons.size();
 		for(int i = 0; i < total_test_files; i++) {
 			Document doc = skeletons.get(i);
-			double probability = 0;
+			double probability = Double.NEGATIVE_INFINITY;
 			int class_id = -1;
 			for(int j = 0; j < 20; j++) {
 				double class_probability = Math.log(class_prior[j]);
 				ArrayList<WordToCount> wc = doc.getWord_map();
 				for (WordToCount wordToCount : wc) {
 					double word_prob = (wordToCount.getCount())*news_paper[j].get_Maximum_likelihood()[wordToCount.getWord_id() - 1];
-					if(word_prob != 0) class_probability = class_probability + Math.log(word_prob);
+					class_probability = class_probability + Math.log(word_prob);
+					//if(Double.NEGATIVE_INFINITY == Math.log(word_prob)) System.out.println("It is negative infinite");
 				}
-				if(class_probability < probability) { 
+				
+				if(class_probability >= probability) { 
 					class_id = j;
 					probability = class_probability;
 				}
@@ -222,23 +236,27 @@ public class BayesAlgo {
 			else wrong = wrong + 1;
 			confusion_matrix[test_document_to_class[i]][class_id] = confusion_matrix[test_document_to_class[i]][class_id] + 1;
 		}
-		if(debug) System.out.println("Testing using MLE files count : " + length + " Correct : " + correct + " wrong " + wrong);
-		if(debug) System.out.println("Accuracy : " + (double)correct/length);
-		/*
+		//if(debug) System.out.println("Testing using MLE files count : " + length + " Correct : " + correct + " wrong " + wrong);
+		if(debug) System.out.println("");
+		if(debug) System.out.println("Overall Accuracy : " + (double)correct/length);
+		if(debug) System.out.println("");
+		if(debug) System.out.println("Class Accuracy :");
+		double[] class_level_accuracy = new double[20];
+		for(int i = 0; i < 20;  i++) {
+			class_level_accuracy[i] = (double)confusion_matrix[i][i]/test_class_to_document_count[i] ;
+		}
+		for(int i = 0; i < 20; i++) {
+			if(debug) System.out.println("Group " + (i + 1) + " : " + class_level_accuracy[i]);
+		}
+		if(debug) System.out.println("");
+		if(debug) System.out.println("Confusion Matrix :");
 		for(int i = 0; i < 20; i++) {
 			for(int j = 0; j < 20; j++) {
 				if(debug) System.out.print(confusion_matrix[i][j] + " ");
 			}
 			if(debug) System.out.println("");
 		}
-		*/
-		double[] class_level_accuracy = new double[20];
-		for(int i = 0; i < 20;  i++) {
-			class_level_accuracy[i] = (double)confusion_matrix[i][i]/test_class_to_document_count[i] ;
-		}
-		for(int i = 0; i < 20; i++) {
-			//if(debug) System.out.println("Accuracy for class " + (i + 1) + " " + class_level_accuracy[i]);
-		}
+		
 	}
 	
 	public void test_data_Bayesian_estimate(String test, String label) {
@@ -282,22 +300,22 @@ public class BayesAlgo {
 			else wrong = wrong + 1;
 			confusion_matrix[test_document_to_class[i]][class_id] = confusion_matrix[test_document_to_class[i]][class_id] + 1;
 		}
-		if(debug) System.out.println("Testing using Bayesian files count : " + length + " Correct : " + correct + " wrong " + wrong);
-		if(debug) System.out.println("Accuracy : " + (double)correct/length);
-		/*
-		for(int i = 0; i < 20; i++) {
-			for(int j = 0; j < 20; j++) {
-				if(debug) System.out.print(confusion_matrix[i][j] + " ");
-			}
-			if(debug) System.out.println("");
-		}
-		*/
+		//if(debug) System.out.println("Testing using Bayesian files count : " + length + " Correct : " + correct + " wrong " + wrong);
+		if(debug) System.out.println("Overall Accuracy : " + (double)correct/length);
 		double[] class_level_accuracy = new double[20];
 		for(int i = 0; i < 20;  i++) {
 			class_level_accuracy[i] = (double)confusion_matrix[i][i]/test_class_to_document_count[i] ;
 		}
 		for(int i = 0; i < 20; i++) {
-			//if(debug) System.out.println("Accuracy for class " + (i + 1) + " " + class_level_accuracy[i]);
+			if(debug) System.out.println("Group " + (i + 1) + " : " + class_level_accuracy[i]);
+		}
+		if(debug) System.out.println("");
+		if(debug) System.out.println("Confusion Matrix : ");
+		for(int i = 0; i < 20; i++) {
+			for(int j = 0; j < 20; j++) {
+				if(debug) System.out.print(confusion_matrix[i][j] + " ");
+			}
+			if(debug) System.out.println("");
 		}
 	}
 	
