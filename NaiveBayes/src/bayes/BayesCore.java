@@ -29,6 +29,9 @@ public class BayesCore {
  	int[] document_to_Class;
  	double[] document_prior;
  	int[] type_document_count;
+ 	int[] class_total_word_count = new int[20];
+ 	
+ 	long total_train_word_count = 0;
 	
 	public BayesCore(String vocabulary, String map, String label, String data, String test_label, String test_data, boolean print) {
 		map_file = map;
@@ -96,6 +99,7 @@ public class BayesCore {
 			int id = Integer.parseInt(trainLine[1]);
 			int docNum = Integer.parseInt(trainLine[0]) - 1;
 			int count = Integer.parseInt(trainLine[2]);
+			total_train_word_count = total_train_word_count + count;
 			newsDocument.getWords()[id - 1].setClassTypeCount(document_to_Class[docNum], count);
 			if(document_word_list.get(trainLine[0]) == null) {
 				document_word_list.put(trainLine[0], new HashSet<String>());
@@ -109,7 +113,18 @@ public class BayesCore {
 			else class_word_list.get(document_to_Class[docNum] + "").add(trainLine[1]);
 			//if(debug) System.out.println("train line : " + newsDocument.getWords()[id].getWordName() + " " + i);
 		}
+		if(debug) System.out.println("Total word count in all documents : " + total_train_word_count);
 		train_data.clear();
+		long check_total_train_word = 0;
+		for(String class_id : class_word_list.keySet()) {
+			int word_Count = 0;
+			for (String word : class_word_list.get(class_id)) {
+				word_Count = word_Count + newsDocument.getWords()[Integer.parseInt(word)].getClassTypeCount(Integer.parseInt(class_id));
+			}
+			if(debug) System.out.println("Class id : " + class_id + " word count : " + word_Count); 
+			check_total_train_word = check_total_train_word + word_Count;
+		}
+		if(debug) System.out.println("Verifying total word Count : " + check_total_train_word);
 		
 		length = newsDocument.getWords().length;
 		// Calculate Priors
